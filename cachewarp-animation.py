@@ -11,9 +11,9 @@ REG_FORMAT = {
 }
 
 def initial_image(self):
-    c_code = Code("timewarp.c", insert_line_no=False, **code_formatting)
+    c_code = Code("code/timewarp.c", insert_line_no=False, **code_formatting)
     c_code.to_corner(UL)
-    asm_code = Code("timewarp.nasm", **code_formatting)
+    asm_code = Code("code/timewarp.nasm", **code_formatting)
     asm_code.to_corner(UR)
     self.add(c_code, asm_code)
 
