@@ -20,22 +20,22 @@ def initial_image(self):
     return c_code, asm_code
 
 
-class Background(Scene):
-    """Used for testing"""
-    def construct(self):
-        c_code, asm_code = initial_image(self)
+# class Background(Scene):
+#     """Used for testing"""
+#     def construct(self):
+#         c_code, asm_code = initial_image(self)
 
-        registers = VGroup()
-        for reg in ["rax", "rdi", "rsi"]:
-            registers += Text(f"{reg} : 0", **REG_FORMAT)
+#         registers = VGroup()
+#         for reg in ["rax", "rdi", "rsi"]:
+#             registers += Text(f"{reg} : 0", **REG_FORMAT)
 
-        registers.arrange(DOWN)
-        registers.to_corner(DL)
-        self.add(registers)
+#         registers.arrange(DOWN)
+#         registers.to_corner(DL)
+#         self.add(registers)
 
-        rax = registers[0]
-        rax.text = "rax : 1"
-        self.play(Transform(registers[0], Text("rax : 1", **REG_FORMAT), replace_mobject_with_target_in_scene=True)
+#         rax = registers[0]
+#         rax.text = "rax : 1"
+#         self.play(Transform(registers[0], Text("rax : 1", **REG_FORMAT), replace_mobject_with_target_in_scene=True))
 
 
     
