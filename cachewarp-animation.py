@@ -6,9 +6,15 @@ code_formatting = {
     "background":"rectangle",
     # "font_size":24
 }
+rectange_format = {
+        "stroke_width":0,
+        "stroke_color":YELLOW,
+        "fill_color":YELLOW,
+        "fill_opacity":0.2
+}
 REG_FORMAT = {
-    "should_center":False, 
-    "font":"monospace",
+    # "should_center":False, 
+    # "font":"monospace",
     "font_size":24
 }
 
@@ -51,13 +57,6 @@ class Combined(Scene):
         # One fixed lineheight for consistency
         lineheight = asm_lines[0].height * 1.05
         
-        rectange_format = {
-                "height":lineheight,
-                "stroke_width":0,
-                "stroke_color":YELLOW,
-                "fill_color":YELLOW,
-                "fill_opacity":0.2
-        }
         asm_order = [7,8,9,  1,2,3,  10,11,  4,5,6, 12, 13, 14, 18]
         c_order =   [7,7,8,  1,2,2,  8 ,9 ,  4,5,5, 9 , 10, 10, 13]
         asm_highlight_last = None
@@ -66,8 +65,8 @@ class Combined(Scene):
             # Create both highlights
             asm_idx, c_idx = asm_idx-1, c_idx - 1
             asm_line, c_line = asm_lines[asm_idx], c_lines[c_idx]
-            asm_highlight = Rectangle(width=asm_line.width, **rectange_format)
-            c_highlight = Rectangle(width=c_line.width, **rectange_format)
+            asm_highlight = Rectangle(width=asm_line.width, height=lineheight, **rectange_format)
+            c_highlight = Rectangle(width=c_line.width, height=lineheight, **rectange_format)
 
             # Position the rectangle to cover the line
             asm_highlight.move_to(asm_line, DL)

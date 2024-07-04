@@ -1,0 +1,196 @@
+#!/usr/bin/env python
+from unicorn import *
+from unicorn.x86_const import *
+from manim import *
+
+class EmulationFinished(Exception):
+    """Exception when emulation is finished"""
+    pass
+# MANIM FORMATTING
+code_formatting = {
+    "background":"rectangle",
+    "language": "nasm",
+    "font_size":18
+}
+rectange_format = {
+        "stroke_width":0,
+        "fill_opacity":0.2
+}
+REG_FORMAT = {
+    "font":"monospace",
+    # "should_center":False,
+    "font_size":24
+}
+
+# UNICORN
+# code to be emulated
+with open('code/timewarp.raw', 'rb') as f:
+    CODE = f.read()
+
+# objdump
+with open('code/timewarp.objdump') as f:
+    DISASS = f.read()
+DISASS = DISASS.splitlines()
+# Get line numbers
+lines = dict()
+
+for cnt, line in enumerate(DISASS):
+    line = line.strip()
+    if line.startswith("1"):
+        addr = int(line.split(":")[0], 16)
+        lines[addr] = cnt
+
+# EMULATION Setup
+ADDRESS = 0x1000 # RIP START
+STACK = 0x1000000
+# Initialize emulator in X86-32bit mode
+mu = Uc(UC_ARCH_X86, UC_MODE_64)
+
+# map enough memory
+mu.mem_map(ADDRESS, ((len(CODE) // 0x1000) + 1 ) * 0x1000)
+mu.mem_map(STACK, 0x2000)
+
+INITIAL_STACK = STACK + 0x1000
+
+# write machine code to be emulated to memory
+mu.mem_write(ADDRESS, CODE)
+
+# RSP in the middle of the stack
+mu.reg_write(UC_X86_REG_RSP, INITIAL_STACK)
+
+
+print("Emulate code")
+END_OFFSET = 0x5 # First 3 steps
+END_OFFSET = 0x24
+class Demo(Scene):
+    def construct(self):
+        # Code
+        asm_code = Code(code="\n".join(DISASS), insert_line_no=False, **code_formatting)
+        asm_code.to_corner(UL)
+        asm_lines = asm_code.code.lines[0]
+        lineheight = asm_lines[0].height * 1.05
+        self.add(asm_code)
+
+        # Registers
+        reg_vals = [
+            ("rax", UC_X86_REG_RAX),
+            ("rdi", UC_X86_REG_RDI),
+            ("rsi", UC_X86_REG_RSI),
+        ]
+        registers = VGroup()
+        for reg,_ in reg_vals:
+            var = Variable(0, Text(reg, **REG_FORMAT), num_decimal_places=0)
+            # Overwrite function that displays the value
+            # var.value._get_num_string = lambda x: hex(int(x))
+            registers += var
+
+        registers.arrange(DOWN)
+        registers.next_to(asm_code, RIGHT * 2)
+        self.add(registers)
+
+        # Return Address
+        ret_addr = Variable(0, Text("ret", **REG_FORMAT))
+        ret_addr.value._get_num_string = lambda x: f"{int(x):x}"
+        ret_addr.label.set_color(GREEN)
+        ret_addr.value.set_color(GREEN)
+        ret_addr.set(value=0)
+        ret_addr.next_to(registers, DOWN * 2)
+        self.add(ret_addr)
+
+
+        self.asm_highlight_last = None
+        self.ret_highlight_last = None
+        def hook_code(uc, address, size, user_data):
+            # If current instruction is int3 exit
+
+            lineno = lines[address]
+            # print(f"line number:{lineno}, code: {DISASS[lineno]}")
+            asm_line = asm_lines[lineno]
+            asm_highlight = Rectangle(width=asm_line.width, height=lineheight, fill_color = YELLOW, **rectange_format)
+            asm_highlight.move_to(asm_line, DL)
+            
+            animations = list()
+            if self.asm_highlight_last is None:
+                self.add(asm_highlight)
+            else:
+                animations.append(Transform(self.asm_highlight_last, asm_highlight, replace_mobject_with_target_in_scene=True))
+            self.asm_highlight_last = asm_highlight
+
+            # Track registers
+            for reg,(_,track_value) in zip(registers,reg_vals):
+                value = mu.reg_read(track_value)
+                animations.append(reg.tracker.animate.set_value(value))
+
+            # Track Returnaddress
+            value = mu.mem_read(INITIAL_STACK - 8, 8)
+            value = int(value[::-1].hex(), 16)
+            animations.append(ret_addr.tracker.animate.set_value(value))
+            # Check if value != 0:
+            if value != 0:
+                ret_line = asm_lines[lines[value]]
+                ret_highlight = Rectangle(width=ret_line.width, height=lineheight, fill_color = GREEN, **rectange_format)
+                ret_highlight.move_to(ret_line, DL)
+                if self.ret_highlight_last is None:
+                    self.add(ret_highlight)
+                else:
+                    animations.append(Transform(self.ret_highlight_last, ret_highlight, replace_mobject_with_target_in_scene=True))
+                
+                self.ret_highlight_last = ret_highlight
+
+            
+            if animations:
+                self.play(*animations)
+                self.pause()
+
+            if size == 1 and mu.mem_read(address, size) == b'\xcc':
+                raise EmulationFinished
+
+        mu.hook_add(UC_HOOK_CODE, hook_code)
+        try:
+            mu.emu_start(ADDRESS, ADDRESS+len(CODE))
+        except EmulationFinished:
+            # Run until end
+            pass
+
+        # now print out some registers
+        print("Emulation done. Below is the CPU context")
+
+        rdi = mu.reg_read(UC_X86_REG_RDI)
+        rsi = mu.reg_read(UC_X86_REG_RSI)
+        print(f"{rdi=}")
+        print(f"{rsi=}")
+
+
+class Test(Scene):
+    def construct(self):
+
+        asm_code = Code(code="\n".join(DISASS), insert_line_no=False, **code_formatting)
+        asm_code.to_corner(UL)
+
+        # Registers
+        reg_vals = [
+            ("rax", UC_X86_REG_RAX),
+            ("rdi", UC_X86_REG_RDI),
+            ("rsi", UC_X86_REG_RSI),
+        ]
+        registers = VGroup()
+        for reg,_ in reg_vals:
+            var = Variable(0, Text(reg, **REG_FORMAT), num_decimal_places=0)
+            var.value._get_num_string = lambda x: hex(int(x))
+            var.value = 0
+            registers += var
+
+        registers.arrange(DOWN)
+        registers.next_to(asm_code, RIGHT)
+        self.add(registers)
+
+        # Return Address
+        ret_addr = Variable(0, Text("RET", **REG_FORMAT))
+        ret_addr.value._get_num_string = lambda x: hex(int(x)) 
+        ret_addr.value = 0
+
+        ret_addr.next_to(registers, DOWN * 2)
+        self.add(ret_addr)
+
+        self.play(ret_addr.tracker.animate.set_value(0x1000))
+        self.pause()
