@@ -3,6 +3,7 @@ from unicorn import *
 from unicorn.x86_const import *
 from manim import *
 
+timewarp=[0x1008, 0x1023]
 class EmulationFinished(Exception):
     """Exception when emulation is finished"""
     pass
@@ -48,7 +49,8 @@ mu = Uc(UC_ARCH_X86, UC_MODE_64)
 
 # map enough memory
 mu.mem_map(ADDRESS, ((len(CODE) // 0x1000) + 1 ) * 0x1000)
-mu.mem_map(STACK, 0x2000)
+STACK_SIZE = 0x2000
+mu.mem_map(STACK, STACK_SIZE)
 
 INITIAL_STACK = STACK + 0x1000
 
@@ -62,8 +64,15 @@ mu.reg_write(UC_X86_REG_RSP, INITIAL_STACK)
 print("Emulate code")
 END_OFFSET = 0x5 # First 3 steps
 END_OFFSET = 0x24
-class Demo(Scene):
+class Timewarp(Scene):
     def construct(self):
+        """timewarp: lines at which the timewarp should take place"""
+        if timewarp is not None:
+            assert len(timewarp) == 2, "Timewarp needs to be None or [prev, target]"
+            prev, target = timewarp
+            assert prev in lines
+            assert target in lines
+
         # Code
         asm_code = Code(code="\n".join(DISASS), insert_line_no=False, **code_formatting)
         asm_code.to_corner(UL)
@@ -93,7 +102,7 @@ class Demo(Scene):
         ret_addr.value._get_num_string = lambda x: f"{int(x):x}"
         ret_addr.label.set_color(GREEN)
         ret_addr.value.set_color(GREEN)
-        ret_addr.set(value=0)
+        ret_addr.value.set_value(0)
         ret_addr.next_to(registers, DOWN * 2)
         self.add(ret_addr)
 
@@ -101,7 +110,13 @@ class Demo(Scene):
         self.asm_highlight_last = None
         self.ret_highlight_last = None
         def hook_code(uc, address, size, user_data):
+            global timewarp
             # If current instruction is int3 exit
+            if timewarp is not None:
+                prev, timewarp_target = timewarp
+                if address == prev:
+                    # Save Memory
+                    self.stored_stack = mu.mem_read(STACK, STACK_SIZE)
 
             lineno = lines[address]
             # print(f"line number:{lineno}, code: {DISASS[lineno]}")
@@ -137,13 +152,53 @@ class Demo(Scene):
                 
                 self.ret_highlight_last = ret_highlight
 
-            
             if animations:
                 self.play(*animations)
                 self.pause()
 
+            # Trigger Timewarp
+            if timewarp and address == timewarp_target:
+                warn = Text("TRIGGER TIMEWARP", font_size=72, color=RED)
+                self.play(Write(warn))
+                self.pause()
+                self.play(FadeOut(warn))
+
+                # Change color of RetAddr
+                ret_addr.value.set_color(RED)
+                ret_addr.label.set_color(RED)
+
+                animations = []
+                # Overwrite memory
+                mu.mem_write(STACK, bytes(self.stored_stack))
+
+                value = mu.mem_read(INITIAL_STACK - 8, 8)
+                value = int(value[::-1].hex(), 16)
+                animations.append(ret_addr.tracker.animate.set_value(value))
+                # Check if value != 0:
+                if value != 0:
+                    ret_line = asm_lines[lines[value]]
+                    ret_highlight = Rectangle(width=ret_line.width, height=lineheight, fill_color = RED, **rectange_format)
+                    ret_highlight.move_to(ret_line, DL)
+                    if self.ret_highlight_last is None:
+                        self.add(ret_highlight)
+                    else:
+                        animations.append(Transform(self.ret_highlight_last, ret_highlight, replace_mobject_with_target_in_scene=True))
+                    
+                    self.ret_highlight_last = ret_highlight
+
+                self.play(*animations)
+                self.pause()
+
+                ret_addr.value.set_color(GREEN)
+                ret_addr.label.set_color(GREEN)
+                
+                # Stop timewarp
+                timewarp = None
+
             if size == 1 and mu.mem_read(address, size) == b'\xcc':
                 raise EmulationFinished
+            
+
 
         mu.hook_add(UC_HOOK_CODE, hook_code)
         try:
@@ -161,36 +216,11 @@ class Demo(Scene):
         print(f"{rsi=}")
 
 
+        
+
 class Test(Scene):
     def construct(self):
-
-        asm_code = Code(code="\n".join(DISASS), insert_line_no=False, **code_formatting)
-        asm_code.to_corner(UL)
-
-        # Registers
-        reg_vals = [
-            ("rax", UC_X86_REG_RAX),
-            ("rdi", UC_X86_REG_RDI),
-            ("rsi", UC_X86_REG_RSI),
-        ]
-        registers = VGroup()
-        for reg,_ in reg_vals:
-            var = Variable(0, Text(reg, **REG_FORMAT), num_decimal_places=0)
-            var.value._get_num_string = lambda x: hex(int(x))
-            var.value = 0
-            registers += var
-
-        registers.arrange(DOWN)
-        registers.next_to(asm_code, RIGHT)
-        self.add(registers)
-
-        # Return Address
-        ret_addr = Variable(0, Text("RET", **REG_FORMAT))
-        ret_addr.value._get_num_string = lambda x: hex(int(x)) 
-        ret_addr.value = 0
-
-        ret_addr.next_to(registers, DOWN * 2)
-        self.add(ret_addr)
-
-        self.play(ret_addr.tracker.animate.set_value(0x1000))
+        warn = Text("TRIGGER TIMEWARP", font_size=72, color=RED)
+        self.play(Write(warn))
         self.pause()
+        self.play(FadeOut(warn))

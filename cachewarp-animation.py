@@ -13,8 +13,8 @@ rectange_format = {
         "fill_opacity":0.2
 }
 REG_FORMAT = {
-    # "should_center":False, 
-    # "font":"monospace",
+    "should_center":False, 
+    "font":"monospace",
     "font_size":24
 }
 
@@ -66,7 +66,7 @@ class Combined(Scene):
             asm_idx, c_idx = asm_idx-1, c_idx - 1
             asm_line, c_line = asm_lines[asm_idx], c_lines[c_idx]
             asm_highlight = Rectangle(width=asm_line.width, height=lineheight, **rectange_format)
-            c_highlight = Rectangle(width=c_line.width, height=lineheight, **rectange_format)
+            c_highlight = Rectangle(width=c_line.width, **rectange_format)
 
             # Position the rectangle to cover the line
             asm_highlight.move_to(asm_line, DL)
