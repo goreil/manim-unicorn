@@ -7,7 +7,7 @@ timewarp.raw: timewarp.elf
 	objcopy --dump-section .text=timewarp.raw timewarp.elf
 
 timewarp.objdump: timewarp.elf
-	objdump -M intel -d timewarp.elf > timewarp.objdump
+	objdump -M intel -d timewarp.elf | sed -e '1,6d'> timewarp.objdump
 
 clean:
 	rm timewarp.raw timewarp.elf timewarp.objdump

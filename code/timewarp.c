@@ -1,14 +1,15 @@
-int ret1(){
-    return 1;
-}
-int ret0(){
-    return 0;
-}
 int main(){
     int a = ret1();
-    int b = ret0();
+    int b = ret2();
     if (a == b){
-        puts("WIN!");
+        win();
     }
     return 0;
 }
+int ret1(){
+    return 10;
+}
+int ret2(){
+    return 30;
+}
+void win();

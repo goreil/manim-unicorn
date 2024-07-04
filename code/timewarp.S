@@ -1,34 +1,19 @@
-.global _start
 .intel_syntax noprefix
-_start:
-    call main
-    // Exit
-    mov rax, 60
-    syscall
-puts:
-    mov rax, 1
-    mov rsi, rdi
-    mov rdi, 1
-    mov rdx, 5
-    syscall
-    ret
-ret1:
- 	mov    rax,0x1
- 	ret    
-ret0:
- 	mov    rax,0x0
- 	ret    
 main:
 	call   ret1
 	mov    rdi,rax
-	call   ret0
+	call   ret2
 	mov    rsi,rax
 	cmp    rdi,rsi
 	jne    _end
-	lea    rax,[rip+_win]
-	mov    rdi,rax
-	call   puts
+	call   win
 _end:
-    ret
-_win:
-    .string "WIN!\n"
+	int3
+ret1:
+ 	mov    rax,10
+ 	ret    
+ret2:
+ 	mov    rax,30
+ 	ret    
+win:
+	ret

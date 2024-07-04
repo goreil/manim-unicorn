@@ -4,6 +4,7 @@ from unicorn.x86_const import *
 
 code_formatting = {
     "background":"rectangle",
+    "insert_line_no":False
     # "font_size":24
 }
 rectange_format = {
@@ -28,24 +29,38 @@ def initial_image(self):
     return c_code, asm_code
 
 
-# class Background(Scene):
-#     """Used for testing"""
-#     def construct(self):
-#         c_code, asm_code = initial_image(self)
+class Transform(Scene):
+    def construct(self):
+        c_code = Code("code/timewarp.c", **code_formatting, font_size=24)
+        c_code.to_corner(UL)
+        asm_code = Code("code/timewarp.objdump", **code_formatting, font_size=18)
+        asm_code.to_corner(UR)
 
-#         registers = VGroup()
-#         for reg in ["rax", "rdi", "rsi"]:
-#             registers += Text(f"{reg} : 0", **REG_FORMAT)
+        self.play(Write(c_code))
+        self.pause()
+        self.play(TransformFromCopy(c_code, asm_code))
+        self.wait(2.5)
+        asm_code.generate_target()
+        asm_code.target.to_corner(UL)
+        self.play(FadeOut(c_code), MoveToTarget(asm_code))
+        self.pause()
+        # self.play()
 
-#         registers.arrange(DOWN)
-#         registers.to_corner(DL)
-#         self.add(registers)
+class NormalBehaviorText(Scene):
+    def construct(self):
+        text = Text("Normal Behavior", font_size=72, color=GREEN)
+        self.play(Write(text))
+        self.pause()
+        self.play(Unwrite(text))
+        self.pause()
 
-#         rax = registers[0]
-#         rax.text = "rax : 1"
-#         self.play(Transform(registers[0], Text("rax : 1", **REG_FORMAT), replace_mobject_with_target_in_scene=True))
-
-
+class WithTimewarpText(Scene):
+    def construct(self):
+        text = Text("With Timewarp", font_size=72, color=RED)
+        self.play(Write(text))
+        self.pause()
+        self.play(Unwrite(text))
+        self.pause()
     
 
 class Combined(Scene):
