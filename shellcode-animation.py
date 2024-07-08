@@ -40,23 +40,23 @@ FORMAT = json.load(open("format.json"))
 
 man_regs = VGroup()
 reg_vals = [
-    ("rax", UC_X86_REG_RAX),
-    ("rbx", UC_X86_REG_RBX),
-    ("rcx", UC_X86_REG_RCX),
-    ("rdx", UC_X86_REG_RDX),
-    ("rdi", UC_X86_REG_RDI),
-    ("rsi", UC_X86_REG_RSI),
-    ("r8", UC_X86_REG_R8),
-    ("r9", UC_X86_REG_R9),
-    ("r10", UC_X86_REG_R10),
-    ("r11", UC_X86_REG_R11),
-    ("r12", UC_X86_REG_R12),
-    ("r13", UC_X86_REG_R13),
-    ("r14", UC_X86_REG_R14),
-    ("r15", UC_X86_REG_R15),
+    ("rax", UC_X86_REG_RAX), 
+    # ("rbx", UC_X86_REG_RBX),
+    ("rcx", UC_X86_REG_RCX), 
+    ("rdx", UC_X86_REG_RDX), 
+    ("rdi", UC_X86_REG_RDI), 
+    ("rsi", UC_X86_REG_RSI), 
+    # ("r8", UC_X86_REG_R8),
+    # ("r9", UC_X86_REG_R9),
+    # ("r10", UC_X86_REG_R10),
+    # ("r11", UC_X86_REG_R11),
+    # ("r12", UC_X86_REG_R12),
+    # ("r13", UC_X86_REG_R13),
+    # ("r14", UC_X86_REG_R14),
+    # ("r15", UC_X86_REG_R15),
     ("rbp", UC_X86_REG_RBP),
     ("rsp", UC_X86_REG_RSP),
-    # ("eip", UC_X86_REG_EIP),
+    # ("rip", UC_X86_REG_RIP),
 ]
 for reg_name,_ in reg_vals:
     var = Variable(0, Text(reg_name, **FORMAT["registers"]))
@@ -80,7 +80,7 @@ man_text.to_edge(UP)
 
 class Animation(Scene):
     def __init__(self, **kwargs):
-        self.last_buf = buf.hex()
+        self.last_buf = buf
         self.i = 0
         self.last_ins = None
         super(**kwargs).__init__()
@@ -94,31 +94,43 @@ class Animation(Scene):
 
         # Initialize Register values
         self.reg = {}
-        for reg_name,uni_const in reg_vals:
-            self.reg[reg_name] = mu.reg_read(uni_const)
+        for (reg_name,uni_const) in (reg_vals):
+            self.reg[reg_name] = 0
 
         def hook_code(uc, address, size, user_data):
             print(f"Instruction {self.i}")
 
             # Change registers
+            indicate_anims = []
+            set_value_anims = []
             for man_reg,(reg_name,track_value) in zip(man_regs,reg_vals):
                 value = mu.reg_read(track_value)
                 if value != self.reg[reg_name]:
-                    self.play(Indicate(man_reg))
-                    self.play(man_reg.tracker.animate.set_value(value))
+                    indicate_anims.append(Indicate(man_reg))
+                    set_value_anims.append(man_reg.tracker.animate.set_value(value))
                     self.reg[reg_name] = value
-                
+
+            if len(indicate_anims) > 0:
+                self.play(*indicate_anims)
+                self.play(*set_value_anims)
 
             # Move instruction to last history
             if self.i != 0:
                 self.play(MoveToTarget(self.last_history))
 
             # Transform Text section
+            # TODO: Marking changes doesn't really work
             current_buf = uc.mem_read(ADDRESS, len(CODE))
             if current_buf != self.last_buf:
-                # import IPython; IPython.embed()
+                # Get 8 byte slice where they differ:
+                for i in range(0, 8, len(current_buf)-8):
+                    if current_buf[i:i+8] != self.last_buf[i:i+8]:
+                        break
+
                 new_text = Text(wrap(current_buf), **FORMAT["text"])
                 new_text.to_edge(UP)
+                slice = man_text[2*i:2*(i+8)]
+                self.play(Indicate(slice, color=RED))
                 self.play(Transform(man_text, new_text))
                 self.last_buf = current_buf
 
@@ -127,8 +139,7 @@ class Animation(Scene):
             end = start + size
 
             def to_wrap(idx):
-                offset = idx // WRAP_SIZE
-                return 2* idx + offset
+                return 2* idx
 
             cur_text = man_text[to_wrap(start):to_wrap(end)]
             cur_text.set_color(YELLOW)
@@ -146,7 +157,7 @@ class Animation(Scene):
 
             # Add to history
             man_ins.generate_target()
-            man_ins.target.next_to(self.last_history, DOWN * .5)
+            man_ins.target.next_to(self.last_history, DOWN * .1)
             man_ins.target.scale(.5).align_to(self.last_history, LEFT)
             self.last_history = man_ins
 
