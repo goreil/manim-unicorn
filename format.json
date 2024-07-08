@@ -1,0 +1,15 @@
+{
+    "registers": {
+        "font":"monospace",
+        "font_size":18
+    },
+    "text": {
+        "font":"monospace",
+        "font_size":18
+    },
+    "code": {
+        "background":"rectangle",
+        "font_size":18,
+        "insert_line_no":false
+    }
+}
