@@ -40,12 +40,12 @@ FORMAT = json.load(open("format.json"))
 
 man_regs = VGroup()
 reg_vals = [
-    ("rax", UC_X86_REG_RAX), 
+    ("rax", UC_X86_REG_RAX),
     # ("rbx", UC_X86_REG_RBX),
-    ("rcx", UC_X86_REG_RCX), 
-    ("rdx", UC_X86_REG_RDX), 
-    ("rdi", UC_X86_REG_RDI), 
-    ("rsi", UC_X86_REG_RSI), 
+    ("rcx", UC_X86_REG_RCX),
+    ("rdx", UC_X86_REG_RDX),
+    ("rdi", UC_X86_REG_RDI),
+    ("rsi", UC_X86_REG_RSI),
     # ("r8", UC_X86_REG_R8),
     # ("r9", UC_X86_REG_R9),
     # ("r10", UC_X86_REG_R10),
@@ -70,6 +70,7 @@ man_regs.shift(LEFT)
 
 
 EMULATION_END = float('inf') # For debugging purposes
+EMULATION_END = 2
 WRAP_SIZE = 32
 def wrap(buf):
     """Turn bytes into word_wrapped hex"""
@@ -84,7 +85,7 @@ class Animation(Scene):
         self.i = 0
         self.last_ins = None
         super(**kwargs).__init__()
-        
+
     def construct(self):
         self.add(man_regs)
         self.add(man_text)
@@ -125,12 +126,12 @@ class Animation(Scene):
                 # Get 8 byte slice where they differ:
                 for i in range(0, 8, len(current_buf)-8):
                     if current_buf[i:i+8] != self.last_buf[i:i+8]:
-                        break
+                        slice = man_text[2*i:2*(i+8)]
+                        self.play(Indicate(slice, color=RED))
+
 
                 new_text = Text(wrap(current_buf), **FORMAT["text"])
                 new_text.to_edge(UP)
-                slice = man_text[2*i:2*(i+8)]
-                self.play(Indicate(slice, color=RED))
                 self.play(Transform(man_text, new_text))
                 self.last_buf = current_buf
 
@@ -148,7 +149,7 @@ class Animation(Scene):
             for _, _, inst, ops in md.disasm_lite(current_buf[start:end], address):
                 break
             self.play(AnimationGroup(Indicate(cur_text), man_ins.animate.center()))
-            
+
             # Transform into instruction
             line = f"{inst} {ops}"
             self.play(Transform(man_ins, Text(line, **FORMAT["text"])))
@@ -172,3 +173,14 @@ class Animation(Scene):
         except EmulationFinished:
             pass
 
+
+class TitleCard(Scene):
+    def construct(self):
+       text = Text("msfvenom -p linux/x64/exec -f python -e x86/shikata_ga_nai", **FORMAT["text"])
+       self.play(Write(text))
+
+       man_code = Text(wrap(buf), **FORMAT["text"])
+       man_code.to_edge(UP)
+
+       self.play(Write(man_code))
+       self.wait(1)

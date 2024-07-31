@@ -33,7 +33,7 @@ class Transform(Scene):
     def construct(self):
         c_code = Code("code/timewarp.c", **code_formatting, font_size=24)
         c_code.to_corner(UL)
-        asm_code = Code("code/timewarp.objdump", **code_formatting, font_size=18)
+        asm_code = Code(code=open("code/timewarp.objdump").read(), **code_formatting, font_size=18, language="nasm")
         asm_code.to_corner(UR)
 
         self.play(Write(c_code))
@@ -45,6 +45,17 @@ class Transform(Scene):
         self.play(FadeOut(c_code), MoveToTarget(asm_code))
         self.pause()
         # self.play()
+
+class TitleCard(Scene):
+    def construct(self):
+        text = Text("Cachewarp", font_size=72, color=ORANGE)
+        self.play(Write(text))
+        subtext = Text("Dropping one write to take over AMD-SEV", font_size=50)
+        subtext.next_to(text, DOWN)
+        self.play(Write(subtext))
+        self.pause()
+        self.play(Unwrite(text), Unwrite(subtext))
+        self.pause()
 
 class NormalBehaviorText(Scene):
     def construct(self):
