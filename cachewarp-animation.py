@@ -37,7 +37,15 @@ class Transform(Scene):
         asm_code.to_corner(UR)
 
         self.play(Write(c_code))
+
+        lines = c_code.code.lines[0]
+        self.play(Indicate(lines[3]))
+        self.play(Indicate(lines[4]))
         self.pause()
+        self.play(Indicate(lines[1]), Indicate(lines[9]))
+        self.pause()
+        self.play(Indicate(lines[2]), Indicate(lines[12]))
+
         self.play(TransformFromCopy(c_code, asm_code))
         self.wait(2.5)
         asm_code.generate_target()
