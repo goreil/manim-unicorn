@@ -11,16 +11,16 @@ class EmulationFinished(Exception):
 code_formatting = {
     "background":"rectangle",
     "language": "nasm",
-    "font_size":18
+    "font_size":24
 }
 rectange_format = {
         "stroke_width":0,
-        "fill_opacity":0.2
+        "fill_opacity":0.4
 }
 REG_FORMAT = {
     "font":"monospace",
     # "should_center":False,
-    "font_size":24
+    "font_size":30
 }
 
 # UNICORN
@@ -137,6 +137,7 @@ class Timewarp(Scene):
             for reg,(_,track_value) in zip(registers,reg_vals):
                 value = mu.reg_read(track_value)
                 animations.append(reg.tracker.animate.set_value(value))
+                
 
             # Track Returnaddress
             value = mu.mem_read(INITIAL_STACK - 8, 8)
@@ -160,10 +161,13 @@ class Timewarp(Scene):
 
             # Trigger Timewarp
             if timewarp and address == timewarp_target:
-                warn = Text("TRIGGER INVD", font_size=72, color=RED)
+                warn = Text("Trigger INVD", font_size=72, color=RED, font="monospace")
+                square = Rectangle(color=WHITE, fill_color=WHITE, fill_opacity=0.2)
+                square.surround(warn)
+                self.add(square)
                 self.play(Write(warn))
                 self.pause()
-                self.play(FadeOut(warn))
+                self.play(FadeOut(warn), FadeOut(square))
 
                 # Change color of RetAddr
                 ret_addr.value.set_color(RED)
@@ -201,7 +205,7 @@ class Timewarp(Scene):
                 # Stop timewarp
                 timewarp = None
                 # Speed up the rest
-                PAUSE_TIME = 0.5
+                # PAUSE_TIME = 0.5
 
             if size == 1 and mu.mem_read(address, size) == b'\xcc':
                 raise EmulationFinished

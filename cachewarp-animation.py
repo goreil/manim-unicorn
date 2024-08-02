@@ -4,8 +4,8 @@ from unicorn.x86_const import *
 
 code_formatting = {
     "background":"rectangle",
-    "insert_line_no":False
-    # "font_size":24
+    "insert_line_no":False,
+    "font_size":24
 }
 rectange_format = {
         "stroke_width":0,
@@ -16,7 +16,7 @@ rectange_format = {
 REG_FORMAT = {
     "should_center":False, 
     "font":"monospace",
-    "font_size":24
+    "font_size":30
 }
 
 def initial_image(self):
@@ -28,12 +28,21 @@ def initial_image(self):
 
     return c_code, asm_code
 
+class INVD(Scene):
+    def construct(self):
+        warn = Text("Trigger INVD", font_size=72, color=RED, font="monospace")
+        square = Rectangle(color=WHITE, fill_color=WHITE, fill_opacity=0.2)
+        square.surround(warn)
+        self.add(square)
+        self.play(Write(warn))
+        self.pause()
+        self.play(FadeOut(warn), FadeOut(square))
 
 class Transform(Scene):
     def construct(self):
-        c_code = Code("code/timewarp.c", **code_formatting, font_size=24)
+        c_code = Code("code/timewarp.c", **code_formatting)
         c_code.to_corner(UL)
-        asm_code = Code(code=open("code/timewarp.objdump").read(), **code_formatting, font_size=18, language="nasm")
+        asm_code = Code(code=open("code/timewarp.objdump").read(), **code_formatting, language="nasm")
         asm_code.to_corner(UR)
 
         self.play(Write(c_code))
