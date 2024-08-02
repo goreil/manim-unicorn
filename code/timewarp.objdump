@@ -1,22 +1,16 @@
 main:
-    1000:	    call   101b <ret1>
-    1005:	    mov    rdi,rax
-    1008:	    call   1023 <ret2>
-    100d:	    mov    rsi,rax
-    1010:	    cmp    rdi,rsi
-    1013:	    jne    101a <_end>
-    1015:	    call   102b <win>
-
-_end:
-    101a:	 	int3   
+    1000:	call   101e <ret1>
+    1005:	mov    rdi,rax
+    1008:	call   1026 <ret2>
+    100d:	mov    rsi,rax
+    1010:	cmp    rdi,rsi
+    1013:	jne    3000 <_exit>
+    1019:	call   102e <win>
 
 ret1:
-    101b:	 	mov    rax,0xa
-    1022:	 	ret    
+    101e:	mov    rax,0xa
+    1025:	ret    
 
 ret2:
-    1023:	 	mov    rax,0x1e
-    102a:	 	ret    
-
-win:
-    102b:	 	ret    
+    1026:	mov    rax,0x1e
+    102d:	ret    

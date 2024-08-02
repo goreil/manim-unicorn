@@ -42,9 +42,9 @@ class Transform(Scene):
         self.play(Indicate(lines[3]))
         self.play(Indicate(lines[4]))
         self.pause()
-        self.play(Indicate(lines[1]), Indicate(lines[9]))
+        self.play(Indicate(lines[1]), Indicate(lines[8]))
         self.pause()
-        self.play(Indicate(lines[2]), Indicate(lines[12]))
+        self.play(Indicate(lines[2]), Indicate(lines[11]))
 
         self.play(TransformFromCopy(c_code, asm_code))
         self.wait(2.5)

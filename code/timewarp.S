@@ -7,8 +7,6 @@ main:
 	cmp    rdi,rsi
 	jne    _end
 	call   win
-_end:
-	int3
 ret1:
  	mov    rax,10
  	ret    
@@ -16,4 +14,3 @@ ret2:
  	mov    rax,30
  	ret    
 win:
-	ret

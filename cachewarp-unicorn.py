@@ -3,7 +3,7 @@ from unicorn import *
 from unicorn.x86_const import *
 from manim import *
 
-timewarp=[0x1008, 0x1023]
+timewarp=[0x1008, 0x1026]
 class EmulationFinished(Exception):
     """Exception when emulation is finished"""
     pass
@@ -63,7 +63,8 @@ mu.reg_write(UC_X86_REG_RSP, INITIAL_STACK)
 
 print("Emulate code")
 END_OFFSET = 0x5 # First 3 steps
-END_OFFSET = 0x24
+# END_OFFSET = 0x24
+PAUSE_TIME = 1.5
 class Timewarp(Scene):
     def construct(self):
         """timewarp: lines at which the timewarp should take place"""
@@ -111,6 +112,7 @@ class Timewarp(Scene):
         self.ret_highlight_last = None
         def hook_code(uc, address, size, user_data):
             global timewarp
+            global PAUSE_TIME
             # If current instruction is int3 exit
             if timewarp is not None:
                 prev, timewarp_target = timewarp
@@ -154,7 +156,7 @@ class Timewarp(Scene):
 
             if animations:
                 self.play(*animations)
-                self.pause()
+                self.pause(PAUSE_TIME)
 
             # Trigger Timewarp
             if timewarp and address == timewarp_target:
@@ -166,6 +168,10 @@ class Timewarp(Scene):
                 # Change color of RetAddr
                 ret_addr.value.set_color(RED)
                 ret_addr.label.set_color(RED)
+
+                # Indicate Important
+                self.play(Indicate(ret_addr))
+                self.pause()
 
                 animations = []
                 # Overwrite memory
@@ -194,18 +200,22 @@ class Timewarp(Scene):
                 
                 # Stop timewarp
                 timewarp = None
+                # Speed up the rest
+                PAUSE_TIME = 0.5
 
             if size == 1 and mu.mem_read(address, size) == b'\xcc':
                 raise EmulationFinished
             
-
-
         mu.hook_add(UC_HOOK_CODE, hook_code)
+        # Explanation time at beginning
+        self.pause(2)
         try:
             mu.emu_start(ADDRESS, ADDRESS+len(CODE))
         except EmulationFinished:
             # Run until end
             pass
+    
+        self.pause(1)
 
 
         
