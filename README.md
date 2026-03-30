@@ -4,13 +4,23 @@ Animated visualizations of x86/x86-64 code execution, combining [Manim](https://
 
 The idea: hook into each instruction step of an emulated binary and generate a corresponding animation frame — register changes, memory modifications, and control flow are all visualized in real time.
 
-## Included Examples
+## Showcase
 
-| Script | Scene | Description |
-|--------|-------|-------------|
-| `unicorn-animation.py` | `Timewarp` | Emulates x86-64 assembly, tracks registers and the return address on the stack. Demonstrates a [Cachewarp](https://cachewarpattack.com/) (AMD-SEV INVD) exploit by saving and restoring stack memory mid-execution. |
-| `asm-animation.py` | `Combined` | Side-by-side C source and assembly with synchronized line-by-line highlighting. |
-| `shellcode-animation.py` | `Animation` | Decodes and steps through shellcode (shikata_ga_nai encoded), showing byte-level mutations and disassembled instructions. |
+### Cachewarp exploit visualization (`unicorn-animation.py`)
+
+Emulates x86-64 assembly step-by-step, tracking registers and the return address on the stack. Demonstrates a [Cachewarp](https://cachewarpattack.com/) (AMD-SEV INVD) exploit — a single dropped memory write hijacks control flow.
+
+https://github.com/goreil/manim-unicorn/raw/main/showcase/timewarp.mp4
+
+### C / Assembly side-by-side (`asm-animation.py`)
+
+Synchronized line-by-line highlighting of C source code and its compiled assembly, showing how high-level constructs map to instructions.
+
+https://github.com/goreil/manim-unicorn/raw/main/showcase/combined.mp4
+
+### Shellcode decoder (`shellcode-animation.py`)
+
+Decodes and steps through shikata_ga_nai encoded shellcode, showing byte-level mutations and disassembled instructions.
 
 ## Dependencies
 

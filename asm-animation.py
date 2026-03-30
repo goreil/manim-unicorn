@@ -4,8 +4,8 @@ from unicorn.x86_const import *
 
 code_formatting = {
     "background":"rectangle",
-    "insert_line_no":False,
-    "font_size":24
+    "add_line_numbers":False,
+    "paragraph_config": {"font_size":24}
 }
 rectange_format = {
         "stroke_width":0,
@@ -14,15 +14,14 @@ rectange_format = {
         "fill_opacity":0.2
 }
 REG_FORMAT = {
-    "should_center":False, 
     "font":"monospace",
     "font_size":30
 }
 
 def initial_image(self):
-    c_code = Code("code/timewarp.c", insert_line_no=False, **code_formatting)
+    c_code = Code(code_file="code/timewarp.c", **code_formatting)
     c_code.to_corner(UL)
-    asm_code = Code("code/timewarp.nasm", **code_formatting)
+    asm_code = Code(code_file="code/timewarp.nasm", **code_formatting)
     asm_code.to_corner(UR)
     self.add(c_code, asm_code)
 
@@ -38,16 +37,16 @@ class INVD(Scene):
         self.pause()
         self.play(FadeOut(warn), FadeOut(square))
 
-class Transform(Scene):
+class TransformScene(Scene):
     def construct(self):
-        c_code = Code("code/timewarp.c", **code_formatting)
+        c_code = Code(code_file="code/timewarp.c", **code_formatting)
         c_code.to_corner(UL)
-        asm_code = Code(code=open("code/timewarp.objdump").read(), **code_formatting, language="nasm")
+        asm_code = Code(code_string=open("code/timewarp.objdump").read(), language="nasm", **code_formatting)
         asm_code.to_corner(UR)
 
         self.play(Write(c_code))
 
-        lines = c_code.code.lines[0]
+        lines = c_code.code_lines.lines[0]
         self.play(Indicate(lines[3]))
         self.play(Indicate(lines[4]))
         self.pause()
@@ -61,7 +60,6 @@ class Transform(Scene):
         asm_code.target.to_corner(UL)
         self.play(FadeOut(c_code), MoveToTarget(asm_code))
         self.pause()
-        # self.play()
 
 class TitleCard(Scene):
     def construct(self):
@@ -89,17 +87,17 @@ class WithTimewarpText(Scene):
         self.pause()
         self.play(Unwrite(text))
         self.pause()
-    
+
 
 class Combined(Scene):
     def construct(self):
         c_code, asm_code = initial_image(self)
 
-        c_lines = c_code.code.lines[0]
-        asm_lines = asm_code.code.lines[0]
+        c_lines = c_code.code_lines.lines[0]
+        asm_lines = asm_code.code_lines.lines[0]
         # One fixed lineheight for consistency
         lineheight = asm_lines[0].height * 1.05
-        
+
         asm_order = [7,8,9,  1,2,3,  10,11,  4,5,6, 12, 13, 14, 18]
         c_order =   [7,7,8,  1,2,2,  8 ,9 ,  4,5,5, 9 , 10, 10, 13]
         asm_highlight_last = None

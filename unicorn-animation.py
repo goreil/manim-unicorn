@@ -11,7 +11,7 @@ class EmulationFinished(Exception):
 code_formatting = {
     "background":"rectangle",
     "language": "nasm",
-    "font_size":24
+    "paragraph_config": {"font_size":24}
 }
 rectange_format = {
         "stroke_width":0,
@@ -75,9 +75,9 @@ class Timewarp(Scene):
             assert target in lines
 
         # Code
-        asm_code = Code(code="\n".join(DISASS), insert_line_no=False, **code_formatting)
+        asm_code = Code(code_string="\n".join(DISASS), add_line_numbers=False, **code_formatting)
         asm_code.to_corner(UL)
-        asm_lines = asm_code.code.lines[0]
+        asm_lines = asm_code.code_lines.lines[0]
         lineheight = asm_lines[0].height * 1.05
         self.add(asm_code)
 
@@ -220,105 +220,3 @@ class Timewarp(Scene):
             pass
     
         self.pause(1)
-
-
-        
-# class Without_Timewarp(Scene):
-#     def construct(self):
-#         """timewarp: lines at which the timewarp should take place"""
-
-#         # Code
-#         asm_code = Code(code="\n".join(DISASS), insert_line_no=False, **code_formatting)
-#         asm_code.to_corner(UL)
-#         asm_lines = asm_code.code.lines[0]
-#         lineheight = asm_lines[0].height * 1.05
-#         self.add(asm_code)
-
-#         # Registers
-#         reg_vals = [
-#             ("_ = rax", UC_X86_REG_RAX),
-#             ("a = rdi", UC_X86_REG_RDI),
-#             ("b = rsi", UC_X86_REG_RSI),
-#         ]
-#         registers = VGroup()
-#         for reg,_ in reg_vals:
-#             var = Variable(0, Text(reg, **REG_FORMAT), num_decimal_places=0)
-#             # Overwrite function that displays the value
-#             # var.value._get_num_string = lambda x: hex(int(x))
-#             registers += var
-
-#         registers.arrange(DOWN)
-#         registers.next_to(asm_code, RIGHT * 2)
-#         self.add(registers)
-
-#         # Return Address
-#         ret_addr = Variable(0, Text("retaddr", **REG_FORMAT))
-#         ret_addr.value._get_num_string = lambda x: f"{int(x):x}"
-#         ret_addr.label.set_color(GREEN)
-#         ret_addr.value.set_color(GREEN)
-#         ret_addr.value.set_value(0)
-#         ret_addr.next_to(registers, DOWN * 2)
-#         self.add(ret_addr)
-
-
-#         self.asm_highlight_last = None
-#         self.ret_highlight_last = None
-#         def hook_code(uc, address, size, user_data):
-#             # If current instruction is int3 exit
-
-#             lineno = lines[address]
-#             # print(f"line number:{lineno}, code: {DISASS[lineno]}")
-#             asm_line = asm_lines[lineno]
-#             asm_highlight = Rectangle(width=asm_line.width, height=lineheight, fill_color = YELLOW, **rectange_format)
-#             asm_highlight.move_to(asm_line, DL)
-            
-#             animations = list()
-#             if self.asm_highlight_last is None:
-#                 self.add(asm_highlight)
-#             else:
-#                 animations.append(Transform(self.asm_highlight_last, asm_highlight, replace_mobject_with_target_in_scene=True))
-#             self.asm_highlight_last = asm_highlight
-
-#             # Track registers
-#             for reg,(_,track_value) in zip(registers,reg_vals):
-#                 value = mu.reg_read(track_value)
-#                 animations.append(reg.tracker.animate.set_value(value))
-
-#             # Track Returnaddress
-#             value = mu.mem_read(INITIAL_STACK - 8, 8)
-#             value = int(value[::-1].hex(), 16)
-#             animations.append(ret_addr.tracker.animate.set_value(value))
-#             # Check if value != 0:
-#             if value != 0:
-#                 ret_line = asm_lines[lines[value]]
-#                 ret_highlight = Rectangle(width=ret_line.width, height=lineheight, fill_color = GREEN, **rectange_format)
-#                 ret_highlight.move_to(ret_line, DL)
-#                 if self.ret_highlight_last is None:
-#                     self.add(ret_highlight)
-#                 else:
-#                     animations.append(Transform(self.ret_highlight_last, ret_highlight, replace_mobject_with_target_in_scene=True))
-                
-#                 self.ret_highlight_last = ret_highlight
-
-#             if animations:
-#                 self.play(*animations)
-#                 self.pause()
-
-#             if size == 1 and mu.mem_read(address, size) == b'\xcc':
-#                 raise EmulationFinished
-            
-
-
-#         mu.hook_add(UC_HOOK_CODE, hook_code)
-#         try:
-#             mu.emu_start(ADDRESS, ADDRESS+len(CODE))
-#         except EmulationFinished:
-#             # Run until end
-#             pass
-
-class Test(Scene):
-    def construct(self):
-        warn = Text("TRIGGER TIMEWARP", font_size=72, color=RED)
-        self.play(Write(warn))
-        self.pause()
-        self.play(FadeOut(warn))

@@ -1,16 +1,16 @@
-main:
-    1000:	call   101e <ret1>
-    1005:	mov    rdi,rax
-    1008:	call   1026 <ret2>
-    100d:	mov    rsi,rax
-    1010:	cmp    rdi,rsi
-    1013:	jne    3000 <_exit>
-    1019:	call   102e <win>
+0000000000001000 <main>:
+    1000:	e8 19 00 00 00       	call   101e <ret1>
+    1005:	48 89 c7             	mov    rdi,rax
+    1008:	e8 19 00 00 00       	call   1026 <ret2>
+    100d:	48 89 c6             	mov    rsi,rax
+    1010:	48 39 f7             	cmp    rdi,rsi
+    1013:	0f 85 e7 1f 00 00    	jne    3000 <__bss_start>
+    1019:	e8 10 00 00 00       	call   102e <win>
 
-ret1:
-    101e:	mov    rax,0xa
-    1025:	ret    
+000000000000101e <ret1>:
+    101e:	48 c7 c0 0a 00 00 00 	mov    rax,0xa
+    1025:	c3                   	ret
 
-ret2:
-    1026:	mov    rax,0x1e
-    102d:	ret    
+0000000000001026 <ret2>:
+    1026:	48 c7 c0 1e 00 00 00 	mov    rax,0x1e
+    102d:	c3                   	ret
