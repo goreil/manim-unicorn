@@ -4,6 +4,8 @@ Animated visualizations of x86/x86-64 code execution, combining [Manim](https://
 
 The idea: hook into each instruction step of an emulated binary and generate a corresponding animation frame — register changes, memory modifications, and control flow are all visualized in real time.
 
+> **Warning:** This project is a work-in-progress prototype. The animation scripts are currently broken due to Manim API changes and may not render correctly.
+
 ## Showcase
 
 ### Cachewarp exploit visualization (`unicorn-animation.py`)
