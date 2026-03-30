@@ -1,5 +1,23 @@
+# Build artifacts
+*.elf
+*.raw
+*.o
 a.out
+code/optimze
+code/timewarp
+
+# Python
 __pycache__
+
+# Manim output
+media/
+
+# Debug
 .gdb_history
-media
-testing
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
